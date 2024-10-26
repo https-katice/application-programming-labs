@@ -2,7 +2,7 @@ import argparse
 import re
 
 
-def open_file(filename: str):
+def open_file(filename: str) -> str:
     """
     The Function opens and reads a file
     :param filename: name file
@@ -38,8 +38,6 @@ def search(divided: list[str]) -> list[str]:
     :return: all questionnaires which fits in
     """
     found = [i for i in divided if re.search(r'Москва', i)]
-    if len(found) == 1:
-        raise IndexError("File is empty")
     return found
 
 
@@ -55,11 +53,14 @@ def out(found: list[str]) -> None:
 
 
 def main():
-    filename = parsing()
-    doc = open_file(filename)
-    divided = split(doc)
-    found = search(divided)
-    out(found)
+    try:
+        filename = parsing()
+        doc = open_file(filename)
+        divided = split(doc)
+        found = search(divided)
+        out(found)
+    except Exception as exc:
+        print(f"Error {exc}")
 
 
 if __name__ == '__main__':
