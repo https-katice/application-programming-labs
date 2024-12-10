@@ -1,67 +1,29 @@
 import argparse
-import re
+import os
+
+import crawler
+import iterator
 
 
-def open_file(filename: str) -> str:
-    """
-    The Function opens and reads a file
-    :param filename: name file
-    :return: file contents as a string
-    """
-    with open(filename, "r", encoding="UTF-8") as file:
-        return file.read()
+def main() -> None:
+    parser = argparse.ArgumentParser(description='Image crawler for downloading images and creating annotations.')
+    parser.add_argument("keyword", type=str, help='Keyword to search for images.')
+    parser.add_argument("save_dir", type=str, help='Directory to save images.')
+    parser.add_argument("annotation_file", type=str, help='CSV file for annotations.')
+    parser.add_argument("max_images", type=int, help='Maximum number of images to download.')
 
-
-def split(filename: str) -> list[str]:
-    """
-    The Function splits a string into substrings
-    :return: list of questionnaires separately
-    """
-    pattern = r'\d+' + r'[)]' + '\n'
-    return re.split(pattern, filename, maxsplit=0)
-
-
-def parsing() -> str:
-    """
-    Parse command line arguments and returns the file name
-    :return: file name
-    """
-    parser = argparse.ArgumentParser()
-    parser.add_argument('filename', type=str, help='The name of the file to analyze')
     args = parser.parse_args()
-    return args.filename
+
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
+
+    cr = crawler.ImageCrawler(args.keyword, args.save_dir, args.annotation_file, args.max_images)
+    cr.download_images()
+
+    it = iterator.ImageIterator(args.annotation_file)
+    for image_path in it:
+        print(f'Обрабатываем изображение: {image_path}')
 
 
-def search(divided: list[str]) -> list[str]:
-    """
-    Function search for questionnaires of people who lives in Moscow
-    :return: all questionnaires which fits in
-    """
-    found = [i for i in divided if re.search(r'Москва', i)]
-    return found
-
-
-def out(found: list[str]) -> None:
-    """
-    Displaying of required questionnaires
-    :param found: list of required questionnaires
-    :return: nothing
-    """
-    print("\n")
-    for j in found:
-        print(j)
-
-
-def main():
-    try:
-        filename = parsing()
-        doc = open_file(filename)
-        divided = split(doc)
-        found = search(divided)
-        out(found)
-    except Exception as exc:
-        print(f"Error {exc}")
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
