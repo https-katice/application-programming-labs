@@ -19,7 +19,6 @@ class ImageCrawler:
         crawler = GoogleImageCrawler(storage={"root_dir": self.save_dir})
         crawler.crawl(keyword=self.keyword, max_num=self.max_images)
 
-        self.create_annotation()
 
     def create_annotation(self) -> str:
         """
@@ -29,7 +28,7 @@ class ImageCrawler:
                       list(Path(self.save_dir).glob('**/*.png'))
 
         absolute_paths = [str(image_path.resolve()) for image_path in image_paths]
-        relative_paths = [str(image_path.relative_to(self.save_dir)) for image_path in image_paths]
+        relative_paths = [str(image_path.append(os.path.join(self.save_dir))) for image_path in image_paths]
 
         # Запись аннотации в CSV файл
         with open(self.annotation_file, mode='w', newline='', encoding='utf-8') as file:
