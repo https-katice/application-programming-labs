@@ -19,6 +19,7 @@ def main() -> None:
 
     cr = crawler.ImageCrawler(args.keyword, args.save_dir, args.annotation_file, args.max_images)
     cr.download_images()
+    cr.create_annotation()
 
     it = iterator.ImageIterator(args.annotation_file)
     for image_path in it:
