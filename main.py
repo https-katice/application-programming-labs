@@ -1,71 +1,37 @@
-import cv2
-
-import sys
 import argparse
-import matplotlib.pyplot as plt
-from image import read_image, convert_to_grayscale, plot_histogram, save_image
+
+from data_frame import create_and_argument_dataframe, compute_and_show_statistic, filter_width_height, add_area_and_sort, create_histogram
 
 
-def get_args() -> argparse.Namespace:
+def parse() -> tuple[str, int, int]:
     """
-    Читает аргументы из терминала
+    Читает аргументы из командной строки
     """
     parser = argparse.ArgumentParser()
-    parser.add_argument("file_name", type = str, help="Keyword of search request")
-    parser.add_argument("-d", "--imgdir", type = str, help="Path to the folder, where you want to save images")
-    parser.add_argument("-f", "--flag", type = bool, help= "Grayscale true or false")
-    arguments = parser.parse_args()
-    print(arguments.flag)
-    return arguments
+    parser.add_argument("csv_path", type=str, help="Path to the annotation file")
+    parser.add_argument("max_width", type=int, help="Max width of image")
+    parser.add_argument("max_height", type=int, help="Max height of image")
+    args = parser.parse_args()
+    return args.csv_path, args.max_width, args.max_height
 
 
-def main(image_path: str, save_path: str) -> None:
+def main():
+    csv_path, max_width, max_height = parse()
     try:
-
-        original_image = read_image(image_path)
-
-        print(f"Размер изображения: {original_image.shape[1]}x{original_image.shape[0]}")
-
-        grayscale_image = convert_to_grayscale(original_image)
-
-        plot_histogram(original_image, "оригинального изображения")
-
-        plot_histogram(grayscale_image, "полутонового изображения")
-
-        display_images(original_image, grayscale_image)
-
-        save_image(grayscale_image, save_path)
-
+        data_frame = create_and_argument_dataframe(csv_path)
+        if data_frame.empty:
+            print("error during creation DataFrame, exited")
+            return
+        compute_and_show_statistic(data_frame)
+        new_data_frame = filter_width_height(data_frame, max_width, max_height)
+        print("\n\nfiltered DataFrame:\n", new_data_frame)
+        new_new_data_frame = add_area_and_sort(data_frame)
+        print("\n\nDataFrame sorted by area:\n", new_new_data_frame)
+        create_histogram(data_frame, 'area')
+        create_histogram(data_frame, 'height')
     except Exception as e:
         print(f"Произошла ошибка: {e}")
 
 
-def display_images(original_image, grayscale_image) -> None:
-    """
-    Отображает оригинальное и полутоновое изображение
-    """
-    plt.figure(figsize=(12, 6))
-
-    # Отображение оригинального изображения
-    plt.subplot(1, 2, 1)
-    plt.imshow(cv2.cvtColor(original_image, cv2.COLOR_BGR2RGB))
-    plt.title("Оригинальное изображение")
-    plt.axis('off')
-
-    # Отображение полутонового изображения
-    plt.subplot(1, 2, 2)
-    plt.imshow(grayscale_image, cmap='gray')
-    plt.title("Полутоновое изображение")
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
-
-
-if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("Использование: python main.py <путь_к_изображению> <путь_для_сохранения>")
-        sys.exit(1)
-
-    image_path = sys.argv[1]
-    save_path = sys.argv[2]
-    main(image_path, save_path)
+if __name__ == "__main__":
+    main()
